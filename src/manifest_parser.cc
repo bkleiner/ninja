@@ -395,19 +395,30 @@ bool ManifestParser::ParseFileInclude(bool new_scope, string* err) {
   if (!lexer_.ReadPath(&eval, err))
     return false;
   string path = eval.Evaluate(env_);
-
-  ManifestParser subparser(state_, file_reader_, dupe_edge_action_);
-  if (new_scope) {
-    subparser.env_ = new BindingEnv(env_);
-  } else {
-    subparser.env_ = env_;
-  }
-
-  if (!subparser.Load(path, err, &lexer_))
-    return false;
+  ManifestParser subparser(state_, file_reader_);
 
   if (!ExpectToken(Lexer::NEWLINE, err))
     return false;
+
+  if (new_scope) {
+	  subparser.env_ = new BindingEnv(env_);
+
+	  while (lexer_.PeekToken(Lexer::INDENT)) {
+		  string key;
+		  EvalString val;
+
+		  if (!ParseLet(&key, &val, err))
+			  return false;
+
+		  subparser.env_->AddBinding(key, val.Evaluate(env_));
+	  }
+  }
+  else {
+	  subparser.env_ = env_;
+  }
+
+  if (!subparser.Load(path, err, &lexer_))
+	  return false;
 
   return true;
 }
