@@ -395,7 +395,7 @@ bool ManifestParser::ParseFileInclude(bool new_scope, string* err) {
   if (!lexer_.ReadPath(&eval, err))
     return false;
   string path = eval.Evaluate(env_);
-  ManifestParser subparser(state_, file_reader_);
+  ManifestParser subparser(state_, file_reader_, dupe_edge_action_);
 
   if (!ExpectToken(Lexer::NEWLINE, err))
     return false;
